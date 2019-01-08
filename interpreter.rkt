@@ -44,7 +44,7 @@
       [(interval? e)
        (if (<=(interval-a e)(interval-b e)) e (error "Syntax error - interval [a,b] must have a<=b"))
        ]
-      [(pair? e) e]
+      [(pair? e) (pair (intr(pair-e1 e) env)(intr(pair-e2 e)env) )]
       [(nil? e) e]
       ;-----------------------is-xxxx?----------------BEGIN
       [(is-bool?? e)
@@ -138,8 +138,8 @@
       [(exponentiate? e)
        (let ([v (intr (exponentiate-e e) env)])
          (cond
-           [(const? v) (const (expt (const-int v) (const-int v)))]
-           [(interval? v) (interval (expt (interval-a v) (interval-a v)) (expt (interval-b v) (interval-b v)))]
+           [(const? v) (const (expt (exp 1) (const-int v)))]
+           [(interval? v) (interval (expt (exp 1) (interval-a v)) (expt (exp 1) (interval-b v)))]
            [#t (error "Sytax error - invalid exponentiate arguments")]
            ))]
       ;-----------------------exponentiate----------------END
@@ -323,7 +323,7 @@
 ;(iv (interval 3 2)(hash)) 
 
 ;is-pair? tests
-;(iv (is-pair? (pair 1 2))(hash))
+;(iv (is-pair? (pair (add(const 3)(const 5)) (const 5)))(hash))
 ;(iv (is-pair? (interval 1 2))(hash))
 
 ;if-then-else tests
@@ -412,17 +412,17 @@
 ;(iv (with (hash)      (call        (function "lolcat" (list "a" "b")                 (if-then-else (greater (valof "a")(valof "b"))                              (call (valof "lolcat") (list (add(valof "a")(const -1)) (valof "b") ))                             (valof "a")                                )                                    )        (list (const 222) (const 100))        )) (hash))
 
 ;Second fibonacci with macros + optimizacija dela z rekurzivnimi funkcijami
-(iv (with (hash "n" (const 3)) (call
-        (function "fib" (list "n")
-                  (if-then-else (equal (valof "n") (const 0)) (const 0)
-                                (if-then-else (equal (valof "n") (const 1)) (const 1)
-                                              (add (call (valof "fib") (list (subtract (valof "n") (const 1))  )) (call (valof "fib") (list (subtract (valof "n") (const 2))  )) )
-                                              ))
-                  )
-        (list (const 13))
-        )
-       )
-       (hash))
+;(iv (with (hash "n" (const 3)) (call
+;        (function "fib" (list "n")
+;                  (if-then-else (equal (valof "n") (const 0)) (const 0)
+;                                (if-then-else (equal (valof "n") (const 1)) (const 1)
+;                                              (add (call (valof "fib") (list (subtract (valof "n") (const 1))  )) (call (valof "fib") (list (subtract (valof "n") (const 2))  )) )
+;                                              ))
+;                  )
+;        (list (const 13))
+;        )
+;       )
+;       (hash))
 
 
 ;(iv (function "lolcat" (list "a" "b") (add(valof "a")(valof "b")))(hash))
@@ -443,13 +443,17 @@
 ;(iv (call (function "lolcat" (list "a" "b") (call (valof "lolcat") (list (const 5)(const 5)))) (list (const 5) (const 5)))(hash))
 
 ;Optimization tests
-(iv (with (hash "a" (const 1) "b" (const 2) "c" (const 3) "k" (const 4))  (function #f (list "a" "b") (valof "k") ))(hash))
+;(iv (with (hash "a" (const 1) "b" (const 2) "c" (const 3) "k" (const 4))  (function #f (list "a" "b") (valof "k") ))(hash))
 
 ;Jaka tests
-(iv (call    (function "test_recursion" (list "a" "b") (if-then-else (greater (valof "b") (const 0))                                                           (multiply (valof "a") (call (valof "test_recursion") (list (valof "a") (add (valof "b") (const -1)))))                                                                                                                   (const 1)                                                           ))    (list (const 2) (const 3)))     (hash))
+;(iv (call    (function "test_recursion" (list "a" "b") (if-then-else (greater (valof "b") (const 0))                                                           (multiply (valof "a") (call (valof "test_recursion") (list (valof "a") (add (valof "b") (const -1)))))                                                                                                                   (const 1)                                                           ))    (list (const 2) (const 3)))     (hash))
 
-;Vprasanje glede (with (hash ))) tests
-(iv
- (with (hash "a" (const 3) "b" (add (const 3)(valof "a")))
-       (valof "b") )
- (hash))
+
+;Reprezentativen testni primer
+;(iv (call
+;        (function "fact" (list "n")
+;            (if-then-else (greater (const 1) (valof "n"))
+;                (const 1)
+;                (multiply (valof "n") (call (valof "fact") (list (subtract (valof "n") (const 1)))))))
+;        (list (const 5)))
+;    (hash))
